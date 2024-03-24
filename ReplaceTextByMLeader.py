@@ -9,7 +9,7 @@ class ReplaceTextByMLeader:
             return [False, "Autocad is not running. Run it and open the drawing as current in which you want me to work."]
         arrow_x, arrow_y = coordinate_for_arrow
         lander_x, lander_y = coordinate_for_lander
-        cmd = f'(command "MLEADER" "A" "{arrow_x},{arrow_y}", "L" "{lander_x},{lander_y}" "{text_to_show_on_mleader}) ""'
+        cmd = f'(command "MLEADER" "A" "{arrow_x},{arrow_y}" "L" "{lander_x},{lander_y}" "{text_to_show_on_mleader}) ""'
         try:
             acad.ActiveDocument.SendCommand(cmd)
             return [True, "Mleader created."]
