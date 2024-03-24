@@ -13,25 +13,13 @@ def get_text_mtext_coordinates(layer_name):
                 coordinates = (obj.InsertionPoint[0], obj.InsertionPoint[1])
                 value = obj.TextString
                 coordinates_and_values.append((coordinates, value))
-                obj.Delete()
-                mleader = ms.AddMLeader(coordinates[0], coordinates[1])
-                mleader.TextString = value
-                mleader.Layer = layer_name
-                mleader.StyleName = "Standard"
-                mleader.LeaderLineType = 0
             elif obj.ObjectName == "AcDbMText":
                 coordinates = (obj.InsertionPoint[0], obj.InsertionPoint[1])
                 value = obj.TextString
                 coordinates_and_values.append((coordinates, value))
-                obj.Delete()
-                mleader = ms.AddMLeader(coordinates[0], coordinates[1])
-                mleader.TextString = value
-                mleader.Layer = layer_name
-                mleader.StyleName = "Standard"
-                mleader.LeaderLineType = 0
 
     return coordinates_and_values
 
-layer_name = "this_is_my_layer_for_text"  # Specify the name of the layer you want to retrieve objects from
+layer_name = "Layer1"  # Specify the name of the layer you want to retrieve objects from
 coordinates_and_values = get_text_mtext_coordinates(layer_name)
 print(coordinates_and_values)

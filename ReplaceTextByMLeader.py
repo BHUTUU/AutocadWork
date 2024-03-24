@@ -39,7 +39,7 @@ class ReplaceTextByMLeader:
                             return response
                 if ifMtext:
                     if objects.objectName == "AcDbMText":
-                        coordinates = (objects.LeaderPoint[0], objects.LeaderPoint[1])
+                        coordinates = (objects.InsertionPoint[0], objects.InsertionPoint[1])
                         TextValue = objects.TextString
                         objects.Delete()
                         coordinatesForLander = (float(coordinates[0])+10, float(coordinates[1])+10)
@@ -50,4 +50,3 @@ class ReplaceTextByMLeader:
                     return [False, "Both ifMtext and ifText is not True hence no task for me to do."]
         if objectsFound == 0:     
             return [True, "Task completed. But i didn't found any text or mtext in the proveded layer to replace."]
-            
