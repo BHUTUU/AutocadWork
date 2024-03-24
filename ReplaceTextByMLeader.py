@@ -1,8 +1,8 @@
 import win32com.client
 
 class ReplaceTextByMLeader:
-    @classmethod
-    def createMleader(cls,coordinate_for_arrow, coordinate_for_lander,text_to_show_on_mleader):
+    @staticmethod
+    def createMleader(coordinate_for_arrow, coordinate_for_lander,text_to_show_on_mleader):
         try:
             acad = win32com.client.GetActiveObject("Autocad.Application")
         except:
