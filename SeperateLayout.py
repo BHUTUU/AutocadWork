@@ -28,7 +28,7 @@ class SeperateLayouts:
                 if str(layout.Name) != "Model" or str(layout.Name) != str(index) or str(layout.Name) != str(fileName):
                     layout.Delete()
                 else:
-                    if str(layout.Name) != str(fileName):
+                    if str(layout.Name) != str(fileName) or str(layout.Name) != "Model":
                         layout.Name = str(fileName)
         except Exception:
             return [False, "Could not connect to AutoCAD."]
