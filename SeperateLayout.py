@@ -18,18 +18,24 @@ class SeperateLayouts:
         except Exception:
             return [False, "Could not connect to AutoCAD."]
     @classmethod
-    def deleteAllLayoutsExceptIndex(filePath, fileName, index):
+    def deleteAllLayoutsExceptIndex(filePath, fileName: str, index: str):
         try:
             acad = win32com.client.Dispatch("AutoCAD.Application")
             acad.Visible = True
             doc = acad.Documents.Open(filePath)
             layouts = doc.Layouts
             for layout in layouts:
-                if str(layout.Name) != "Model" or str(layout.Name) != str(index) or str(layout.Name) != str(fileName):
-                    layout.Delete()
+                layoutName = str(layout.Name)
+                if layoutName == fileName or layoutName == index or layoutName == "Model":
+                    continue
                 else:
-                    if str(layout.Name) != str(fileName) or str(layout.Name) != "Model":
-                        layout.Name = str(fileName)
+                    layout.Delete()
+            for layout in layouts:
+                layoutName = str(layout.Name)
+                if layoutName == "Model" or layoutName == fileName:
+                    continue
+                else:
+                    layout.Name = fileName
         except Exception:
             return [False, "Could not connect to AutoCAD."]
     @staticmethod
@@ -52,7 +58,7 @@ class SeperateLayouts:
             tempfilehold  = os.path.join(path_to_dir_for_generated_dwg, f"{baseNameOfDwg}{i}.dwg")
             if not os.path.isfile(tempfilehold):
                 shutil.copy(path_to_source_dwg, tempfilehold)
-                delResponse = SeperateLayouts.deleteAllLayoutsExceptIndex(tempfilehold, f"{baseNameOfDwg}{i}.dwg", i)
+                delResponse = SeperateLayouts.deleteAllLayoutsExceptIndex(tempfilehold, f"{baseNameOfDwg}{i}.dwg", str(i))
                 if delResponse[0] == False:
                     errorInFiles.append(tempfilehold+": error while deleting layouts for this file")
             else:
