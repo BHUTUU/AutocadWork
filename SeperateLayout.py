@@ -32,8 +32,10 @@ class SeperateLayouts:
                     layout.Delete()
             for layout in layouts:
                 layoutName = str(layout.Name)
-                if layoutName == "Model" or layoutName == fileName:
+                if layoutName == "Model":
                     continue
+                elif layoutName == fileName:
+                    break
                 else:
                     layout.Name = fileName
         except Exception:
