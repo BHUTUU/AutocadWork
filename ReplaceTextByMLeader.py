@@ -24,6 +24,7 @@ class ReplaceTextByMLeader:
             return [False, "Autocad is not Running. Run it and open the drawing as current in which you want me to work."]
         activeDoc = acad.ActiveDocument
         modelSpace = activeDoc.ModelSpace
+        acad.ActiveDocument.SendCommand(f'(command "LAYER" "M" "{layerName}" "") "" ')
         objectsFound = 0
         for objects in modelSpace:
             if objects.Layer == layerName and (objects.ObjectName == "AcDbText" or objects.ObjectName == "AcDbMText"):
