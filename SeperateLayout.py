@@ -53,15 +53,15 @@ class SeperateLayouts:
             return [False, "The path to the source dwg is not valid."]
         if not os.path.isdir(path_to_dir_for_generated_dwg):
             return [False, "The path to the dir for generated dwg is not valid."]
-        print(path_to_dir_for_generated_dwg+"\n\n"+path_to_source_dwg)
+        # print(path_to_dir_for_generated_dwg+"\n\n"+path_to_source_dwg)
         layoutNumberAndName = SeperateLayouts.getNumberOfLayouts(path_to_source_dwg)
-        print(layoutNumberAndName)
+        # print(layoutNumberAndName)
         if layoutNumberAndName[0] == False:
             return layoutNumberAndName
         numberOfLayouts = layoutNumberAndName[0]
         layoutarray = layoutNumberAndName[1]
         baseNameOfDwg = str(os.path.basename(path_to_source_dwg))[:-5]
-        print(numberOfLayouts, layoutarray, baseNameOfDwg)
+        # print(numberOfLayouts, layoutarray, baseNameOfDwg)
         initialForRange=1
         errorInFiles=[]
         if os.path.basename(path_to_source_dwg) in os.listdir(path_to_dir_for_generated_dwg):
@@ -76,8 +76,8 @@ class SeperateLayouts:
             else:
                 errorInFiles.append(tempfilehold+": This file already exists at destination so i will not even delete layouts from it.")
         return [True, errorInFiles]
-ins=SeperateLayouts()
-fileName = os.path.join(os.getcwd(), "test1.dwg")
-folderName = os.path.join(os.getcwd(), "result") 
-resp=ins.doSeparate(fileName, folderName)
-print(resp)
+# ins=SeperateLayouts()
+# fileName = os.path.join(os.getcwd(), "test1.dwg")
+# folderName = os.path.join(os.getcwd(), "result") 
+# resp=ins.doSeparate(fileName, folderName)
+# print(resp)
