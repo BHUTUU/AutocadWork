@@ -1,74 +1,91 @@
 import tkinter as tk
-import threading
-import webview
+import webbrowser
 from pyproj import Transformer
-import win32com.client
+import win32com.client as wc
 
-# <<<----Coordinate transformer (FIXED CRS) ---->>>
-TRANSFORMER = Transformer.from_crs(
-    "EPSG:32640",  # UTM84-40N
-    "EPSG:4326",
-    always_xy=True
-)
+# <<<----------- AutoCAD CS → EPSG mapping ----------->>>
+ACAD_CS_TO_EPSG = {
+    "UTM84-40N": "EPSG:32640",
+    "UTM84-41N": "EPSG:32641",
+    "UTM84-42N": "EPSG:32642",
+    "UTM84-43N": "EPSG:32643",
+    "UTM84-44N": "EPSG:32644",
+    "UTM84-45N": "EPSG:32645",
+    "WGS84": "EPSG:4326",
+    "BRITISHNATGRID": "EPSG:27700",
+    "WEBMERCATOR": "EPSG:3857"
+}
 
-map_url = None  # shared state
+TARGET_EPSG = "EPSG:4326"
 
-# <<<---- AutoCAD point picker ---->>>
-def get_point_from_autocad():
-    acad = win32com.client.Dispatch("AutoCAD.Application.25")
+
+def get_autocad_coordinate_system():
+    acad = wc.Dispatch("AutoCAD.Application")
+    doc = acad.ActiveDocument
+
+    cs = doc.GetVariable("CGEOCS")
+    if not cs:
+        raise RuntimeError("CGEOCS not set in drawing")
+
+    return cs.strip().upper()
+
+
+def build_transformer():
+    acad_cs = get_autocad_coordinate_system()
+
+    if acad_cs not in ACAD_CS_TO_EPSG:
+        raise RuntimeError(f"Unsupported coordinate system: {acad_cs}")
+
+    source_epsg = ACAD_CS_TO_EPSG[acad_cs]
+
+    transformer = Transformer.from_crs(
+        source_epsg,
+        TARGET_EPSG,
+        always_xy=True
+    )
+
+    return transformer, acad_cs, source_epsg
+
+
+def pick_point_from_autocad():
+    acad = wc.Dispatch("AutoCAD.Application")
     doc = acad.ActiveDocument
     util = doc.Utility
 
     util.Prompt("\nSelect a point: ")
-    point = util.GetPoint()
+    pt = util.GetPoint()
 
-    return point[0], point[1]
+    return pt[0], pt[1]
 
-# <<<---- Background worker ---->>>
-def pick_point_worker():
-    global map_url
 
+def on_pick_point():
     try:
-        easting, northing = get_point_from_autocad()
-        lon, lat = TRANSFORMER.transform(easting, northing)
+        transformer, acad_cs, epsg = build_transformer()
+
+        easting, northing = pick_point_from_autocad()
+        lon, lat = transformer.transform(easting, northing)
 
         status.set(
+            f"CS: {acad_cs} ({epsg})\n"
             f"E: {easting:.3f}  N: {northing:.3f}\n"
             f"Lat: {lat:.6f}  Lon: {lon:.6f}"
         )
 
-        # Satellite / 3D view url format:
-        map_url = f"https://www.google.com/maps/@{lat},{lon},300m/data=!3m1!1e3"
-
-
-        # Ask main thread to open webview of the selected coordinate
-        root.after(0, open_webview)
+        url = f"https://www.google.com/maps/@{lat},{lon},300m/data=!3m1!1e3"
+        webbrowser.open(url)
 
     except Exception as e:
         status.set(f"Error: {e}")
 
-# <<<---- running the webview on main thread ---->>>
-def open_webview():
-    webview.create_window(
-        "Google Map",
-        map_url,
-        width=1000,
-        height=700
-    )
-    webview.start()
 
-# <<<---- Button handler ---->>>
-def launch():
-    threading.Thread(target=pick_point_worker, daemon=True).start()
-
-# <<<---- Tkinter UI ---->>>
+# <<<----------- Tkinter UI ----------->>>
 root = tk.Tk()
-root.title("AutoCAD → Google Map")
-root.geometry("420x220")
+root.title("AutoCAD → Google Street View")
+root.geometry("480x260")
 
 tk.Label(
     root,
-    text="UTM84-40N → Google Street View",
+    text="AutoCAD → Google Street View Locator",
     font=("Segoe UI", 12, "bold")
 ).pack(pady=10)
 
@@ -76,11 +93,11 @@ tk.Button(
     root,
     text="Pick Point from AutoCAD",
     font=("Segoe UI", 11),
-    command=launch,
-    width=25
+    command=on_pick_point,
+    width=30
 ).pack(pady=10)
 
-status = tk.StringVar(value="Waiting for input...")
+status = tk.StringVar(value="Waiting for AutoCAD input...")
 
 tk.Label(
     root,
