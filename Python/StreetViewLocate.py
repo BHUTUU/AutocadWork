@@ -46,6 +46,7 @@ def pick_point_worker():
         easting, northing = get_point_from_autocad()
         lon, lat = TRANSFORMER.transform(easting, northing)
         status.set(
+            f"CS: {acad_cs} ({epsg})\n"
             f"E: {easting:.3f}  N: {northing:.3f}\n"
             f"Lat: {lat:.6f}  Lon: {lon:.6f}"
         )
@@ -66,11 +67,7 @@ def open_webview():
     )
     webview.start()
 
-# <<<---- Button handler ---->>>
-def launch():
-    threading.Thread(target=pick_point_worker, daemon=True).start()
-
-# <<<---- Tkinter UI ---->>>
+# <<<----------- Tkinter UI ----------->>>
 root = tk.Tk()
 root.title("AutoCAD Streetview Locate")
 root.geometry("420x220")
@@ -85,11 +82,11 @@ tk.Button(
     root,
     text="Pick Point from AutoCAD",
     font=("Segoe UI", 11),
-    command=launch,
-    width=25
+    command=on_pick_point,
+    width=30
 ).pack(pady=10)
 
-status = tk.StringVar(value="Waiting for input...")
+status = tk.StringVar(value="Waiting for AutoCAD input...")
 
 tk.Label(
     root,
