@@ -3,7 +3,6 @@ import threading, sys
 import webview
 from pyproj import Transformer
 import win32com.client as wc
-
 # <<<----------- AutoCAD CS → EPSG mapping ----------->>>
 ACAD_CS_TO_EPSG = {
     "UTM84-40N": "EPSG:32640",
@@ -46,7 +45,6 @@ def pick_point_worker():
         easting, northing = get_point_from_autocad()
         lon, lat = TRANSFORMER.transform(easting, northing)
         status.set(
-            f"CS: {acad_cs} ({epsg})\n"
             f"E: {easting:.3f}  N: {northing:.3f}\n"
             f"Lat: {lat:.6f}  Lon: {lon:.6f}"
         )
@@ -56,7 +54,6 @@ def pick_point_worker():
         root.after(0, open_webview)
     except Exception as e:
         status.set(f"Error: {e}")
-
 # <<<---- running the webview on main thread ---->>>
 def open_webview():
     webview.create_window(
@@ -66,28 +63,26 @@ def open_webview():
         height=700
     )
     webview.start()
-
-# <<<----------- Tkinter UI ----------->>>
+# <<<---- Button handler ---->>>
+def launch():
+    threading.Thread(target=pick_point_worker, daemon=True).start()
+# <<<---- Tkinter UI ---->>>
 root = tk.Tk()
-root.title("AutoCAD Streetview Locate")
+root.title("AutoCAD/C3D → StreetView Locate")
 root.geometry("420x220")
-
 tk.Label(
     root,
-    text="AutoCAD/C3D → Google Street View",
+    text="AutoCAD/C3D→ StreetView Locate",
     font=("Segoe UI", 12, "bold")
 ).pack(pady=10)
-
 tk.Button(
     root,
     text="Pick Point from AutoCAD",
     font=("Segoe UI", 11),
-    command=on_pick_point,
-    width=30
+    command=launch,
+    width=25
 ).pack(pady=10)
-
-status = tk.StringVar(value="Waiting for AutoCAD input...")
-
+status = tk.StringVar(value="Waiting for input...")
 tk.Label(
     root,
     textvariable=status,
