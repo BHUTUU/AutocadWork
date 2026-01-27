@@ -2,13 +2,14 @@ import math
 import time
 
 import win32com.client
+import pythoncom
 import sys
-from shapely import LineString
 from shapely.ops import split
-from shapely.geometry import Polygon, Point
-
+from shapely.geometry import Polygon
+pythoncom.CoInitialize()
 acad = win32com.client.Dispatch("AutoCAD.Application")
 doc = acad.ActiveDocument
+ms = doc.ModelSpace
 try:
     doc.SelectionSets.Item("PYSEL").Delete()
 except:
@@ -38,40 +39,52 @@ if number_of_selection == 2:
 else:
     doc.SendCommand('(alert "There must be at least and not more than 2 Closed polylines!" ) ')
     sys.exit(1)
-def print_circle_commands(coords, radius=2.0):
-    for i in coords:
-        x = i[0]
-        y = i[1]
-        while True:
-            try:
-                doc.SendCommand(f'(command "CIRCLE" "{x},{y}" "{radius}" ) ')
-                break
-            except Exception:
-                continue
+# def print_circle_commands(coords, radius=2.0):
+#     for i in coords:
+#         x = i[0]
+#         y = i[1]
+#         while True:
+#             try:
+#                 doc.SendCommand(f'(command "CIRCLE" "{x},{y}" "{radius}" ) ')
+#                 break
+#             except Exception:
+#                 continue
 vertices_of_pl1 = POLYLINES[0].Coordinates
 vertices_of_pl2 = POLYLINES[1].Coordinates
 points_of_pl1 = [(vertices_of_pl1[i], vertices_of_pl1[i+1]) for i in range(0, len(vertices_of_pl1), 2)]
 points_of_pl2 = [(vertices_of_pl2[i], vertices_of_pl2[i+1]) for i in range(0, len(vertices_of_pl2), 2)]
-# print("Points of Pl1", points_of_pl1)
-# print("Points of Pl2", points_of_pl2)
+
 poly1 = Polygon(points_of_pl1)
 poly2 = Polygon(points_of_pl2)
 result = poly1.difference(poly2)
-# print(result)
-cmd = '(command "PLINE" '
-for x, y in result.exterior.coords:
-    cmd += f'"{x},{y}" '
-cmd += '"C") '
+points_of_new_poly1 = []
+for x,y in result.exterior.coords:
+    points_of_new_poly1.append(x)
+    points_of_new_poly1.append(y)
+points_var = win32com.client.VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_R8, points_of_new_poly1)
 while True:
     try:
-        time.sleep(2)
-        doc.SendCommand(cmd)
+        new_pline_created=ms.AddLightWeightPolyline(points_var)
+        new_pline_created.Closed = True
         break
     except Exception:
         continue
 
+#<<< ----- the below method for creating the resultant polyline fails when there's lot of vertices to handle. ---->>>
+# cmd = '(command "PLINE" '
+# for x, y in result.exterior.coords:
+#     cmd += f'"{x},{y}" '
+# cmd += '"C" "") '
+# while True:
+#     try:
+#         time.sleep(2)
+#         doc.SendCommand(cmd)
+#         break
+#     except Exception:
+#         continue
 
-###<------------wasted my time to figure out the simple logical subtraction operation------------>>>
+
+###<------------I wasted my time to figure out the simple logical subtraction operation------------>>>
 # intersection_geoms = []
 # if poly1.intersects(poly2):
 #     intersection = poly1.intersection(poly2)
