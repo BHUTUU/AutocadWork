@@ -1,3 +1,8 @@
+"""
+Program: fixoverlapping.py: This will open a dialog box with a button, when clicked it will ask for selecting two closed polylines in the current document opened in AutoCAD/CIVIL3D, after run completion, the result will be such that the firstly selected polyline will be trimmed at the point of intersection if they do so and it will follow the same path as of the other for that particular intersection length thereby resolving the overlapping.
+Author: Suman Kumar -> github.com/BHUTUU/AutocadWork
+Date: 22 DECEMBER 2025 
+"""
 import base64
 import os
 import tempfile
