@@ -4,7 +4,7 @@ import sys, re, os
 import webview
 from pyproj import Transformer
 import win32com.client as wc, pythoncom
-# <<<----------- AutoCAD CS → EPSG mapping ----------->>>
+# <<<----------- AutoCAD CS -> EPSG mapping ----------->>>
 ACAD_CS_TO_EPSG = {
     "UTM84-40N": "EPSG:32640",
     "UTM84-41N": "EPSG:32641",
@@ -23,26 +23,19 @@ REVERSETRANSFORMER = None
 coordinateSystem = None
 street_view_block_active_instance=None
 doc=None
-# <<<---- WebView API (JS → Python) ---->>>
+# <<<---- WebView API (JS -> Python) ---->>>
 class WebAPI:
     def update_url(self, url):
         global map_url, REVERSETRANSFORMER,doc, street_view_block_active_instance
         map_url = url
-        print("Street View URL changed:")
-        print(url)
-        print("-" * 60)
         lat, long, heading, pitch = self.parse_streetview_url(url)
         northing, easting = REVERSETRANSFORMER.transform(long, lat)
         try:
             street_view_block_active_instance.InsertionPoint = WebAPI.APoint(northing, easting, 0)
             street_view_block_active_instance.Rotation=((360 -heading) * 3.141592653589793) / 180
-            # print(360-heading)
-            # print((street_view_block_active_instance.Rotation * 180) / 3.141592653589793)
-            # doc.regen(1)
+            street_view_block_active_instance.Update()
         except Exception:
-            print("failed to move the block")
             pass
-        # print(self.parse_streetview_url(url))
     def parse_streetview_url(self, url):
         pattern = r'@(-?\d+\.\d+),(-?\d+\.\d+),3a,[^h]*?([0-9.]+)h,([0-9.]+)t'
         match = re.search(pattern, url)
@@ -50,7 +43,7 @@ class WebAPI:
             raise ValueError("No Street View pano data in URL")
         lat = float(match.group(1))
         lon = float(match.group(2))
-        heading = float(match.group(3))  # yaw
+        heading = float(match.group(3))
         pitch = float(match.group(4))
         return lat, lon, heading, pitch
     @staticmethod
@@ -111,7 +104,7 @@ def get_point_from_autocad():
     coordinateSystem = str(doc.GetVariable("CGEOCS")).strip().upper()
     if coordinateSystem not in ACAD_CS_TO_EPSG:
         doc.SendCommand(
-            '(alert "No coordinate system found. Set it using DRAWINGSETTINGS in Civil 3D.") '
+            '(alert "No coordinate system found. Set it using EDITDRAWINGSETTINGS in Civil 3D.") '
         )
         sys.exit(1)
     TRANSFORMER = Transformer.from_crs(
@@ -143,7 +136,7 @@ def pick_point_worker():
         )
         map_url = (
             f"https://www.google.com/maps/"
-            f"@{lat},{lon},3a,75y,90t/data=!3m1!1e1"
+            f"@{lat},{lon},3a,75y,45h,90t/data=!3m1!1e1"
         )
         root.after(0, open_webview)
     except Exception as e:
@@ -152,7 +145,7 @@ def pick_point_worker():
 def open_webview():
     api = WebAPI()
     window = webview.create_window(
-        "StreetView Locate ~BHUTUU",
+        "StreetView Locate ~By: Suman Kumar",
         map_url,
         width=1000,
         height=700,
@@ -160,7 +153,16 @@ def open_webview():
     )
     def on_loaded():
         window.evaluate_js(URL_WATCHER_JS)
+    def on_closed():
+        global street_view_block_active_instance
+        try:
+            if street_view_block_active_instance is not None:
+                street_view_block_active_instance.Delete()
+                street_view_block_active_instance = None
+        except Exception:
+            pass
     window.events.loaded += on_loaded
+    window.events.closed += on_closed
     webview.start()
 # <<<---- Button handler ---->>>
 def launch():
