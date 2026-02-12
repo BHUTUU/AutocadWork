@@ -35,7 +35,9 @@ class WebAPI:
         northing, easting = REVERSETRANSFORMER.transform(long, lat)
         try:
             street_view_block_active_instance.InsertionPoint = WebAPI.APoint(northing, easting, 0)
-            street_view_block_active_instance.Rotation=heading
+            street_view_block_active_instance.Rotation=((360 -heading) * 3.141592653589793) / 180
+            # print(360-heading)
+            # print((street_view_block_active_instance.Rotation * 180) / 3.141592653589793)
             # doc.regen(1)
         except Exception:
             print("failed to move the block")

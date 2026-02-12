@@ -1,5 +1,6 @@
 import win32com.client as wc, pythoncom, os
 import time
+import math
 def APoint(x, y, z=0.0):
     return wc.VARIANT(
         pythoncom.VT_ARRAY | pythoncom.VT_R8,
@@ -21,7 +22,7 @@ for i in range(0,360,20):
 #     street_view_block_active_instance.InsertionPoint=APoint(i,i,0)
 
     street_view_block_active_instance.InsertionPoint = APoint(i, i, 0)
-    street_view_block_active_instance.Rotation= i if i<360 else 0
+    street_view_block_active_instance.Rotation=math.radians(360-i) if i<360 else 0
     doc.regen(1)
     time.sleep(2)
 time.sleep(10)
