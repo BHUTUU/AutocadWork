@@ -4,6 +4,7 @@ import sys, re, os
 import webview
 from pyproj import Transformer
 import win32com.client as wc, pythoncom
+pythoncom.CoInitialize()
 # <<<----------- AutoCAD CS -> EPSG mapping ----------->>>
 ACAD_CS_TO_EPSG = {
     "UTM84-40N": "EPSG:32640",
@@ -169,17 +170,23 @@ def launch():
     threading.Thread(target=pick_point_worker, daemon=True).start()
 # <<<---- Tkinter UI ---->>>
 root = tk.Tk()
-root.title("AutoCAD/C3D → StreetView Locate")
+root.title("AutoCAD/C3D -> StreetView Locate")
 root.geometry("420x220")
+root.maxsize(420,220)
+root.minsize(420,220)
+# root.iconbitmap(icon_path)
+root.configure(bg="lightgrey")
 tk.Label(
     root,
-    text="AutoCAD/C3D → StreetView Locate",
-    font=("Segoe UI", 12, "bold")
+    text="AutoCAD/C3D -> StreetView Locate",
+    font=("Segoe UI", 12, "bold"),
+    bg="lightgrey"
 ).pack(pady=10)
 tk.Button(
     root,
     text="Pick Point from AutoCAD",
     font=("Segoe UI", 11),
+    bg="skyblue",
     command=launch,
     width=28
 ).pack(pady=10)
@@ -188,6 +195,14 @@ tk.Label(
     root,
     textvariable=status,
     font=("Consolas", 9),
-    justify="left"
+    justify="left",
+    bg="lightgrey"
 ).pack(pady=10)
+tk.Label(
+    root,
+    text="By: Suman Kumar   ~   github.com/BHUTUU",
+    font=("Arial", 9),
+    justify="left",
+    bg="lightgrey"
+).pack(anchor="s", side="bottom")
 root.mainloop()
